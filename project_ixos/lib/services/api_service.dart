@@ -58,11 +58,9 @@ class ApiService {
 
   Future<List<Song>> getSongsByMood(String moodId) async {
     try {
-      // Updated to use the new general songs endpoint with mood filter if supported, 
-      // or check if there's a specific mood songs endpoint. 
-      // Docs say: GET /api/v1/songs
+      final queryParams = moodId.isNotEmpty ? '?moodId=$moodId' : '';
       final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/songs?mood_id=$moodId'),
+        Uri.parse('$baseUrl/api/v1/songs$queryParams'),
         headers: await _headers(),
       );
 

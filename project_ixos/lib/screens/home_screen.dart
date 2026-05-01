@@ -9,6 +9,7 @@ import '../widgets/mini_player.dart';
 import '../widgets/bottom_bar.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
+import 'debug_songs_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const SearchScreen();
       case 2:
-        return const Center(child: Text('Library (Coming Soon)', style: TextStyle(color: Colors.white)));
+        return const DebugSongsScreen();
       case 3:
         return const ProfileScreen();
       default:
@@ -160,7 +161,7 @@ class _Header extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Good morning',
+          'Hello',
           style: TextStyle(
             color: Color(0xFFA1A1AA),
             fontSize: 14,
@@ -169,7 +170,7 @@ class _Header extends StatelessWidget {
         ),
         SizedBox(height: 4),
         Text(
-          'Your Playlists',
+          'Your Moods',
           style: TextStyle(
             color: Colors.white,
             fontSize: 30,

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/mood.dart';
 import '../models/song.dart';
 import '../providers/player_provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
 import '../services/api_service.dart';
 
 class PlaylistView extends StatefulWidget {
@@ -26,43 +28,19 @@ class _PlaylistViewState extends State<PlaylistView> {
   }
 
   Future<void> _loadSongs() async {
-    // For now, let's mock some songs if the API is empty
     final songs = await _apiService.getSongsByMood(widget.mood.id);
-    if (songs.isEmpty) {
-      _songs = [
-        Song(
-          id: '1',
-          fileId: 's1',
-          filePath: 'music/s1.mp3',
-          title: 'Mood Song 1',
-          artistId: 'a1',
-          artistName: 'Ixos Artist',
-          albumTitle: 'Mood Album',
-          durationS: 210,
-          cdnUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        ),
-        Song(
-          id: '2',
-          fileId: 's2',
-          filePath: 'music/s2.mp3',
-          title: 'Mood Song 2',
-          artistId: 'a1',
-          artistName: 'Ixos Artist',
-          albumTitle: 'Mood Album',
-          durationS: 180,
-          cdnUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-        ),
-      ];
-    } else {
-      _songs = songs;
-    }
     setState(() {
+      _songs = songs;
       _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final playerProvider = context.read<PlayerProvider>();
+    final authProvider = context.read<AuthProvider>();
+    final baseUrl = authProvider.isAuthenticated ? 'https://musicapi.gamobo.shop' : null;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -120,7 +98,7 @@ class _PlaylistViewState extends State<PlaylistView> {
                         style: TextStyle(color: Colors.white.withOpacity(0.6))),
                     trailing: const Icon(Icons.more_vert, color: Colors.white54),
                     onTap: () {
-                      context.read<PlayerProvider>().playSong(song);
+                      playerProvider.playSong(song, baseUrl: baseUrl);
                     },
                   );
                 },

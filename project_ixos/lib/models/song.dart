@@ -34,22 +34,41 @@ class Song {
   factory Song.fromJson(Map<String, dynamic> json) {
     final metadata = json['metadata'] as Map<String, dynamic>?;
 
-    return Song(
-      id: json['id'] ?? '',
-      fileId: json['file_id'] ?? json['id'] ?? '',
-      filePath: json['file_path'] ?? json['ruta'] ?? '',
-      cdnUrl: json['cdn_url'],
+    // Helper to parse double safely from String or Number
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    // Helper to parse int safely from String or Number
+    int parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    final song = Song(
+      id: json['id']?.toString() ?? '',
+      fileId: (json['file_id'] ?? json['fileId'] ?? json['id'])?.toString() ?? '',
+      filePath: (json['music_url'] ?? json['musicUrl'] ?? json['file_path'] ?? json['filePath'] ?? json['ruta'] ?? '')?.toString() ?? '',
+      cdnUrl: json['cdn_url'] ?? json['cdnUrl'] ?? json['music_url'],
       title: json['title'] ?? metadata?['titulo'] ?? 'Unknown',
-      artistId: json['artist_id'] ?? '',
-      artistName: json['artist_name'] ?? metadata?['artista'],
-      albumId: json['album_id'],
-      albumTitle: json['album_title'] ?? metadata?['album'],
-      coverUrl: json['cover_url'],
-      releaseYear: json['release_year'] ?? int.tryParse(metadata?['anio']?.toString() ?? ''),
-      durationS: (json['duration_s'] ?? json['duracion'] ?? 0).toDouble(),
-      explicit: json['explicit'] ?? false,
-      playCount: json['play_count'] ?? 0,
+      artistId: json['artist_id']?.toString() ?? json['artistId']?.toString() ?? '',
+      artistName: json['artist'] ?? json['artist_name'] ?? json['artistName'] ?? metadata?['artista'],
+      albumId: json['album_id']?.toString() ?? json['albumId']?.toString(),
+      albumTitle: json['album_title'] ?? json['albumTitle'] ?? metadata?['album'],
+      coverUrl: json['cover_url'] ?? json['coverUrl'],
+      releaseYear: parseInt(json['release_year'] ?? json['releaseYear'] ?? metadata?['anio']),
+      durationS: parseDouble(json['duration_s'] ?? json['durationS'] ?? json['duracion']),
+      explicit: json['explicit'] == true || json['explicit'] == 1,
+      playCount: parseInt(json['play_count'] ?? json['playCount']),
     );
+
+    print('Parsed Song [${song.title}]: file_path="${song.filePath}", cdn_url="${song.cdnUrl}"');
+    return song;
   }
 
   Map<String, dynamic> toJson() {

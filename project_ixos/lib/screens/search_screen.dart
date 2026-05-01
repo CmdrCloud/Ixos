@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/song.dart';
 import '../providers/player_provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
 import '../services/api_service.dart';
 
@@ -24,22 +25,9 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
     setState(() => _isSearching = true);
-    // Mocking search for now
-    await Future.delayed(const Duration(milliseconds: 500));
+    final results = await _apiService.searchSongs(query);
     setState(() {
-      _searchResults = [
-        Song(
-          id: 's3',
-          fileId: 's3',
-          filePath: 'music/s3.mp3',
-          title: 'Search Result 1',
-          artistId: 'a2',
-          artistName: 'Search Artist',
-          albumTitle: 'Search Album',
-          durationS: 200,
-          cdnUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-        ),
-      ];
+      _searchResults = results;
       _isSearching = false;
     });
   }
@@ -47,6 +35,9 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final moodProvider = context.watch<MoodProvider>();
+    final playerProvider = context.read<PlayerProvider>();
+    final authProvider = context.read<AuthProvider>();
+    final baseUrl = authProvider.isAuthenticated ? 'https://musicapi.gamobo.shop' : null;
 
     return Scaffold(
       backgroundColor: moodProvider.backgroundColor,
@@ -94,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       subtitle: Text(song.artistName ?? 'Unknown Artist',
                           style: TextStyle(color: Colors.white.withOpacity(0.6))),
                       onTap: () {
-                        context.read<PlayerProvider>().playSong(song);
+                        playerProvider.playSong(song, baseUrl: baseUrl);
                       },
                     );
                   },

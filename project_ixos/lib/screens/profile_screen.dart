@@ -42,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                '@${user?.username ?? 'username'}',
+                '${user?.username ?? 'username'}',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white.withOpacity(0.5),
