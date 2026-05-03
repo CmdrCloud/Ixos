@@ -50,17 +50,23 @@ class Song {
       return 0;
     }
 
+    // Migration Helper: Replace old domain with new domain to avoid SSL/Auth issues
+    String? migrateUrl(String? url) {
+      if (url == null) return null;
+      return url.replaceAll('musicapi.gamobo.shop', 'musicapi.sisganadero.online');
+    }
+
     final song = Song(
       id: json['id']?.toString() ?? '',
       fileId: (json['file_id'] ?? json['fileId'] ?? json['id'])?.toString() ?? '',
-      filePath: (json['music_url'] ?? json['musicUrl'] ?? json['file_path'] ?? json['filePath'] ?? json['ruta'] ?? '')?.toString() ?? '',
-      cdnUrl: json['cdn_url'] ?? json['cdnUrl'] ?? json['music_url'],
+      filePath: migrateUrl((json['music_url'] ?? json['musicUrl'] ?? json['file_path'] ?? json['filePath'] ?? json['ruta'] ?? '')?.toString()) ?? '',
+      cdnUrl: migrateUrl(json['cdn_url'] ?? json['cdnUrl'] ?? json['music_url']),
       title: json['title'] ?? metadata?['titulo'] ?? 'Unknown',
       artistId: json['artist_id']?.toString() ?? json['artistId']?.toString() ?? '',
       artistName: json['artist'] ?? json['artist_name'] ?? json['artistName'] ?? metadata?['artista'],
       albumId: json['album_id']?.toString() ?? json['albumId']?.toString(),
       albumTitle: json['album_title'] ?? json['albumTitle'] ?? metadata?['album'],
-      coverUrl: json['cover_url'] ?? json['coverUrl'],
+      coverUrl: migrateUrl(json['cover_url'] ?? json['coverUrl']),
       releaseYear: parseInt(json['release_year'] ?? json['releaseYear'] ?? metadata?['anio']),
       durationS: parseDouble(json['duration_s'] ?? json['durationS'] ?? json['duracion']),
       explicit: json['explicit'] == true || json['explicit'] == 1,

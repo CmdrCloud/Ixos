@@ -3,19 +3,27 @@ import 'package:provider/provider.dart';
 import 'providers/mood_provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/dj_provider.dart';
 import 'services/auth_service.dart';
+import 'services/download_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() {
-  const String baseUrl = 'https://musicapi.gamobo.shop'; // Reverted to standard HTTPS
+  WidgetsFlutterBinding.ensureInitialized();
+  const String baseUrl = 'https://musicapi.sisganadero.online'; // Updated URL
   final authService = AuthService(baseUrl: baseUrl);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MoodProvider()),
-        ChangeNotifierProvider(create: (_) => PlayerProvider()),
+        ChangeNotifierProvider(create: (_) => DownloadService()),
+        ChangeNotifierProxyProvider<DownloadService, PlayerProvider>(
+          create: (_) => PlayerProvider(),
+          update: (_, ds, player) => player!..updateDownloadService(ds),
+        ),
+        ChangeNotifierProvider(create: (_) => DjProvider()),
         ChangeNotifierProvider(
           create: (_) {
             final provider = AuthProvider(authService);

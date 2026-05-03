@@ -40,8 +40,8 @@ class BottomBar extends StatelessWidget {
               onTap: () => onItemSelected(1),
             ),
             _NavItem(
-              icon: Icons.library_music,
-              label: 'Library',
+              icon: Icons.layers,
+              label: 'DJ',
               isSelected: selectedIndex == 2,
               onTap: () => onItemSelected(2),
             ),

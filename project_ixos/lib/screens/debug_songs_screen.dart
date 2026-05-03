@@ -58,12 +58,12 @@ class _DebugSongsScreenState extends State<DebugSongsScreen> {
     final moodProvider = context.watch<MoodProvider>();
     
     // Explicitly using the production URL to ensure relative paths are resolved
-    const baseUrl = 'https://musicapi.gamobo.shop';
+    const baseUrl = 'https://musicapi.sisganadero.online';
 
     return Scaffold(
       backgroundColor: moodProvider.backgroundColor,
       appBar: AppBar(
-        title: const Text('DEBUG: All Songs'),
+        title: Text('DEBUG: Songs (${_songs.length})'),
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
@@ -94,18 +94,99 @@ class _DebugSongsScreenState extends State<DebugSongsScreen> {
                               Text('ID: ${song.id}', style: const TextStyle(color: Colors.white54, fontSize: 10)),
                               const SizedBox(height: 4),
                               SelectableText(
-                                'Stream URL: https://musicapi.gamobo.shop/music/${song.fileId.endsWith('.mp3') ? song.fileId : '${song.fileId}.mp3'}',
+                                'Stream URL: ${song.filePath}',
                                 style: const TextStyle(color: Colors.blueAccent, fontSize: 10),
                               ),
                             ],
                           ),
                           isThreeLine: true,
+                          trailing: IconButton(
+                            icon: const Icon(Icons.more_vert, color: Colors.white54),
+                            onPressed: () => _showSongOptions(context, song),
+                          ),
                           onTap: () {
-                            playerProvider.playSong(song, baseUrl: baseUrl);
+                            playerProvider.setQueue(_songs, initialIndex: index, baseUrl: baseUrl);
                           },
                         );
                       },
                     ),
+    );
+  }
+
+  void _showSongOptions(BuildContext context, Song song) {
+    final playerProvider = context.read<PlayerProvider>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF18181B),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.playlist_add, color: Colors.white),
+            title: const Text('Add to Queue', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              playerProvider.addToQueue(song);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added to queue')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_circle_outline, color: Colors.white),
+            title: const Text('Add to Mood', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              _showMoodSelection(context, song);
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  void _showMoodSelection(BuildContext outerContext, Song song) async {
+    final apiService = ApiService();
+    final moods = await apiService.getMoods();
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF18181B),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('Select Mood', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: moods.length,
+              itemBuilder: (context, index) {
+                final mood = moods[index];
+                return ListTile(
+                  leading: Icon(Icons.mood, color: mood.gradient.first),
+                  title: Text(mood.displayName, style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    if (!mounted) return;
+                    context.read<MoodProvider>().addSongToMood(mood.id, song.id);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Added to ${mood.displayName}')),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }

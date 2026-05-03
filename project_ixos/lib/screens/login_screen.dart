@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: authProvider.isLoading
                   ? null

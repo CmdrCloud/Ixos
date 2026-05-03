@@ -23,15 +23,15 @@ class Playlist {
 
   factory Playlist.fromJson(Map<String, dynamic> json) {
     return Playlist(
-      id: json['id'],
-      ownerId: json['owner_id'],
-      name: json['name'],
+      id: json['id']?.toString() ?? '',
+      ownerId: (json['owner_id'] ?? json['ownerId'])?.toString() ?? '',
+      name: json['name'] ?? 'Untitled Playlist',
       description: json['description'],
-      coverUrl: json['cover_url'],
-      visibility: json['visibility'],
-      moodId: json['mood_id'],
-      totalSongs: json['total_songs'] ?? 0,
-      totalDurationS: (json['total_duration_s'] ?? 0).toDouble(),
+      coverUrl: json['cover_url'] ?? json['coverUrl'],
+      visibility: json['visibility'] ?? 'private',
+      moodId: json['mood_id'] ?? json['moodId'],
+      totalSongs: json['total_songs'] ?? json['totalSongs'] ?? 0,
+      totalDurationS: (json['total_duration_s'] ?? json['totalDurationS'] ?? 0).toDouble(),
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/mood_provider.dart';
+import 'subscription_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -52,31 +53,13 @@ class ProfileScreen extends StatelessWidget {
               
               // Action List
               _ProfileTile(
-                icon: Icons.favorite,
-                label: 'Liked Songs',
+                icon: Icons.star,
+                label: 'Subscription',
                 onTap: () {
-                  // TODO: Navigate to Liked Songs
-                },
-              ),
-              _ProfileTile(
-                icon: Icons.playlist_play,
-                label: 'My Playlists',
-                onTap: () {
-                  // TODO: Navigate to Playlists
-                },
-              ),
-              _ProfileTile(
-                icon: Icons.download_for_offline,
-                label: 'Downloads',
-                onTap: () {
-                  // TODO: Navigate to Downloads
-                },
-              ),
-              _ProfileTile(
-                icon: Icons.settings,
-                label: 'Settings',
-                onTap: () {
-                  // TODO: Navigate to Settings
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
+                  );
                 },
               ),
               

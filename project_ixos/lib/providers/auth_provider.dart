@@ -10,16 +10,32 @@ class AuthProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   User? _currentUser;
   bool _isLoading = false;
+  bool _rememberMe = true; // Default to true
 
   AuthProvider(this._authService);
 
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null;
+  bool get rememberMe => _rememberMe;
+
+  set rememberMe(bool value) {
+    _rememberMe = value;
+    notifyListeners();
+  }
 
   Future<void> checkAuth() async {
     _isLoading = true;
     notifyListeners();
+
+    final rememberStr = await _storage.read(key: 'rememberMe');
+    _rememberMe = rememberStr == 'true';
+
+    if (!_rememberMe) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
 
     final userId = await _storage.read(key: 'userId');
     final token = await _storage.read(key: 'accessToken');
@@ -27,7 +43,7 @@ class AuthProvider with ChangeNotifier {
     if (userId != null && token != null) {
       try {
         final response = await http.get(
-          Uri.parse('${_authService.baseUrl}/api/v1/me?user_id=$userId'),
+          Uri.parse('${_authService.baseUrl}/api/v1/me/profile'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -53,6 +69,8 @@ class AuthProvider with ChangeNotifier {
     final result = await _authService.login(identifier, password);
     
     if (result != null) {
+      await _storage.write(key: 'rememberMe', value: _rememberMe.toString());
+
       if (result['user'] != null) {
         _currentUser = User.fromJson(result['user']);
       } else {

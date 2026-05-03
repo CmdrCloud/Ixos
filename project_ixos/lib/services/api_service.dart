@@ -3,15 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/song.dart';
 import '../models/mood.dart';
-import '../models/playlist.dart';
-import '../models/artist.dart';
-import '../models/album.dart';
 
 class ApiService {
   final String baseUrl;
   final _storage = const FlutterSecureStorage();
 
-  ApiService({this.baseUrl = 'https://musicapi.gamobo.shop'});
+  ApiService({this.baseUrl = 'https://musicapi.sisganadero.online'});
 
   Future<Map<String, String>> _headers() async {
     final token = await _storage.read(key: 'accessToken');
@@ -21,10 +18,7 @@ class ApiService {
     };
   }
 
-  // Helper to get current user ID for endpoints that require ?user_id=
   Future<String?> _getUserId() async {
-    // This assumes the user ID might be stored or we can extract it.
-    // For now, let's assume it's part of the login response saved elsewhere or we need to add it to storage.
     return await _storage.read(key: 'userId');
   }
 
@@ -43,7 +37,6 @@ class ApiService {
       print('Error fetching moods: $e');
     }
     
-    // Fallback/Mock if API fails
     return [
       Mood(id: '1', name: 'feliz', displayName: 'Feliz', iconName: 'sentiment_satisfied', gradientStart: '#FACC15', gradientEnd: '#F97316', sortOrder: 1),
       Mood(id: '2', name: 'triste', displayName: 'Triste', iconName: 'cloud', gradientStart: '#475569', gradientEnd: '#1E3A5F', sortOrder: 2),
@@ -58,7 +51,8 @@ class ApiService {
 
   Future<List<Song>> getSongsByMood(String moodId) async {
     try {
-      final queryParams = moodId.isNotEmpty ? '?moodId=$moodId' : '';
+      // Increased limit to 500 to fetch all songs at once for now
+      final queryParams = moodId.isNotEmpty ? '?moodId=$moodId&limit=500' : '?limit=500';
       final response = await http.get(
         Uri.parse('$baseUrl/api/v1/songs$queryParams'),
         headers: await _headers(),
@@ -76,41 +70,46 @@ class ApiService {
 
   Future<List<Song>> searchSongs(String query) async {
     try {
+      print('DEBUG: Searching for: $query');
       final response = await http.get(
         Uri.parse('$baseUrl/api/v1/search?q=$query'),
         headers: await _headers(),
       );
 
+      print('DEBUG Search response status: ${response.statusCode}');
+      print('DEBUG Search response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final dynamic data = jsonDecode(response.body);
-        // The new docs don't specify search response structure, 
-        // but let's assume it returns a list of items or the previous entity structure.
-        if (data is List) {
-           return data.map((json) => Song.fromJson(json)).toList();
+        
+        List<dynamic> songList = [];
+        
+        if (data is Map && data.containsKey('songs')) {
+          songList = data['songs'];
         } else if (data is Map && data.containsKey('data')) {
-           final List<dynamic> results = data['data'];
-           return results.map((json) => Song.fromJson(json)).toList();
+          songList = data['data'];
+        } else if (data is List) {
+          songList = data;
         }
+
+        return songList.map((json) {
+          if (json is Map && json.containsKey('entityType')) {
+             return Song(
+                id: json['entityId'] ?? '',
+                fileId: json['entityId'] ?? '',
+                filePath: '', 
+                title: json['primaryText'] ?? 'Unknown',
+                artistId: '', 
+                artistName: json['secondaryText'] ?? 'Unknown Artist',
+                coverUrl: json['imageUrl'],
+                durationS: 0,
+              );
+          }
+          return Song.fromJson(json);
+        }).toList();
       }
     } catch (e) {
-      print('Error searching songs: $e');
-    }
-    return [];
-  }
-
-  Future<List<Playlist>> getUserPlaylists() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/playlists'),
-        headers: await _headers(),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => Playlist.fromJson(json)).toList();
-      }
-    } catch (e) {
-      print('Error fetching playlists: $e');
+      print('DEBUG Search Exception: $e');
     }
     return [];
   }
@@ -131,23 +130,20 @@ class ApiService {
     return {};
   }
 
-  Future<List<Song>> getLikedSongs() async {
-    final userId = await _getUserId();
-    if (userId == null) return [];
-
+  Future<Song?> getSongById(String id) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/liked-songs?user_id=$userId'),
+        Uri.parse('$baseUrl/api/v1/songs/$id'),
         headers: await _headers(),
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => Song.fromJson(json)).toList();
+        final data = jsonDecode(response.body);
+        return Song.fromJson(data);
       }
     } catch (e) {
-      print('Error fetching liked songs: $e');
+      print('Error fetching song by ID: $e');
     }
-    return [];
+    return null;
   }
 }

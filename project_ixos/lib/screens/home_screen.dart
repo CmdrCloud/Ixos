@@ -9,7 +9,7 @@ import '../widgets/mini_player.dart';
 import '../widgets/bottom_bar.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
-import 'debug_songs_screen.dart';
+import 'dj_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const SearchScreen();
       case 2:
-        return const DebugSongsScreen();
+        return const DjScreen();
       case 3:
         return const ProfileScreen();
       default:
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   bottom: false,
                   child: _buildBody(),
                 ),
-                if (playerProvider.currentSong != null)
+                if (playerProvider.currentSong != null && _selectedNavIndex != 2)
                   Positioned(
                     left: 8,
                     right: 8,
